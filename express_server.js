@@ -18,11 +18,25 @@ const urlDatabase = {
 };
 
 app.post('/urls', (req, res) => {
-  urlDatabase[generateRandomString()] = req.body.longURL;
+  const newTinyUrl = generateRandomString();
+  urlDatabase[newTinyUrl] = req.body.longURL;
   console.log(urlDatabase); //Lot the POST request body to the console
-  res.send('Ok'); //Respond with "OK" (will be replaced)
+  // res.send('Ok'); //Respond with "OK" (will be replaced)
+
+  let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl] };
+  res.render('urls_show', templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+    const longURL = urlDatabase[req.params.shortURL];
+
+    if(longURL === undefined) {
+      res.render('urls_notiny');
+      // setTimeout(() => res.redirect(`http://localhost:${PORT}/urls/new`), 3000);
+    } else {
+      res.redirect(longURL);
+    };
+});
 
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
