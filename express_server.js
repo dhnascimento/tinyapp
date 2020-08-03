@@ -18,7 +18,8 @@ const urlDatabase = {
 };
 
 app.post('/urls', (req, res) => {
-  console.log(req.body); //Lot the POST request body to the console
+  urlDatabase[generateRandomString()] = req.body.longURL;
+  console.log(urlDatabase); //Lot the POST request body to the console
   res.send('Ok'); //Respond with "OK" (will be replaced)
 });
 
