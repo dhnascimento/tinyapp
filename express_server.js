@@ -133,17 +133,23 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-app.get('/', (req, res) => {
-  res.redirect('/urls');
-});
-
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
+app.get('/login', (req, res) => {
+  res.render('urls_login');
 });
 
 app.get('/register', (req, res) => {
   res.render('urls_register');
 });
+
+app.get('/', (req, res) => {
+  res.redirect('/urls');
+});
+
+
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase);
+});
+
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
