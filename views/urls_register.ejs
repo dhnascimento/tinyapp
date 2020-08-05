@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+    <title>Register</title>
+  </head>
+
+  <body>
+    
+    <main style="margin: 2em;">
+      <div class="d-flex justify-content-center">
+          <form action="/register" method="POST">
+            <div class="text-center">
+              <div class="col-auto">
+                  <label for="inputemail">Email address</label>
+                  <input type="email" name="email" class="form-control" id="inputemail" aria-describedby="emailHelp" placeholder="Enter email">
+                  <label for="exampleInputPassword1">Password</label>
+                  <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                    <div class="d-flex justify-content-center">
+                      <main style="margin: 1em;">
+                      <button type="submit" class="btn btn-success">Register</button>  
+                    </main>
+                  </div>
+                </div>
+            </div>
+          </form>
+      </div>
+  </main>
+  </body>
+</html>
