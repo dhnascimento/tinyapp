@@ -54,9 +54,14 @@ const userID = (email, password) => {
 }; 
 
 // URLs object
+// const urlDatabase = {
+//   'b2xVn2': 'http://www.lighthouselabs.ca',
+//   '9sm5xK': 'http://www.google.com'
+// };
+
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 
@@ -128,18 +133,21 @@ app.post('/urls/:id', (req, res) => {
 
 app.post('/urls', (req, res) => {
   const newTinyUrl = generateRandomString();
-  urlDatabase[newTinyUrl] = req.body.longURL;
+  urlDatabase[newTinyUrl] = {
+    longURL: req.body.longURL,
+    userID: req.cookies.user_id
+  }; 
   console.log(urlDatabase); //Lot the POST request body to the console
   // res.send('Ok'); //Respond with "OK" (will be replaced)
 
-  let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl], user: users[req.cookies.user_id] };
+  let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl].longURL , user: users[req.cookies.user_id] };
   res.render('urls_show', templateVars);
 }); 
 
 
 // GET requests
 app.get("/u/:shortURL", (req, res) => {
-    const longURL = urlDatabase[req.params.shortURL];
+    const longURL = urlDatabase[req.params.shortURL].longURL;
 
     if(longURL === undefined) {
       res.render('urls_notiny');
@@ -159,7 +167,8 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies.user_id] };
+  
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies.user_id] };
   res.render('urls_show', templateVars);
 })
 
