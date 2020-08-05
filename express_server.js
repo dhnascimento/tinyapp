@@ -21,9 +21,15 @@ const generateRandomString = () => {
 // Helper functions
 
 const emailLookup = (email) => {
-  if 
-} 
-
+  for (let user of Object.keys(users)) {
+    for (let item in users[user]) {
+      if (users[user]['email'] === email) {
+        return false
+      }
+    }
+  }
+  return true;
+}; 
 
 
 // URLs object
@@ -52,9 +58,11 @@ const users = {
 app.post('/register',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please fill out all required fields");
+  } else if (!emailLookup(req.body.email)) {
+    res.status(400).send("This email already exists in our database. Please choose another one.");
   } else {
     let newUser = generateRandomString();
-  users[newUser] = {
+    users[newUser] = {
     id: newUser,
     email: req.body.email,
     password: req.body.password
