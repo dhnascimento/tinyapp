@@ -57,11 +57,11 @@ const authenticator = (email, password) => {
   return true;
 }; 
 
-const userID = (email, password) => {
-  for (let user of Object.keys(users)) {
-    for (let item in users[user]) {
-      if (users[user]['email'] === email && bcrypt.compareSync(password, users[user]['password'])) {
-        return users[user]['id'];
+const getUserByEmail = (email, password, database) => {
+  for (let user of Object.keys(database)) {
+    for (let item in database[user]) {
+      if (database[user]['email'] === email && bcrypt.compareSync(password, database[user]['password'])) {
+        return database[user]['id'];
       }
     }
   }
@@ -128,7 +128,7 @@ app.post('/login',  (req, res) => {
   } else if (authenticator(req.body.email, req.body.password)) {
     res.status(403).send("Password or email incorrect.")
   } else  {
-    let user_id = userID(req.body.email, req.body.password);
+    let user_id = getUserByEmail(req.body.email, req.body.password, users);
     // res.cookie('user_id', user_id);
     req.session.user_id = user_id;
     res.redirect('/urls') 
