@@ -1,3 +1,4 @@
+// Requesting dependencies
 const express = require('express');
 const app = express();
 const PORT = 8080; // default port 8080
@@ -6,6 +7,7 @@ const morgan = require('morgan');
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 
+// Helper functions
 const {
   generateCookieKey,
   generateRandomString,
@@ -15,21 +17,22 @@ const {
   urlsForUser
 } = require('./helpers');
 
-
+// Salts for bcrypt
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 
-
+// Registering middleware functionalities
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 app.set('view engine', 'ejs');
 
-
 app.use(cookieSession({
   name: 'session',
   keys: [generateCookieKey(), generateCookieKey(), generateCookieKey()]
-}))
+}));
 
+
+// Databases
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "hermes" },
@@ -38,23 +41,22 @@ const urlDatabase = {
   d7TvTl: { longURL: "https://gasdrawls.com", userID: "pastorAbraao" }
 };
 
-
-// User data object
-const users = { 
+const users = {
   "hermes": {
-    id: "hermes", 
-    email: "hermes@olympus.com", 
+    id: "hermes",
+    email: "hermes@olympus.com",
     password: bcrypt.hashSync("qwerty", salt)
   },
- "pastorAbraao": {
-    id: "pastorAbraao", 
-    email: "pa@dubness.zap", 
+  "pastorAbraao": {
+    id: "pastorAbraao",
+    email: "pa@dubness.zap",
     password: bcrypt.hashSync("123mudar", salt)
   }
 };
 
 // POST requests
 
+// Register new user
 app.post('/register',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please fill out all required fields");
@@ -63,92 +65,94 @@ app.post('/register',  (req, res) => {
   } else {
     let newUser = generateRandomString();
     users[newUser] = {
-    id: newUser,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, salt)
-  };
-  console.log(users);
-  let user_id = newUser;
-  // res.cookie('user_id', user_id);
-  req.session.user_id = user_id; 
-  res.redirect('/urls');
+      id: newUser,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, salt)
+    };
+    let user_id = newUser;
+    req.session.user_id = user_id;
+    res.redirect('/urls');
   }
 });
 
+// Login
 app.post('/login',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please fill out all required fields");
   } else if (authenticator(req.body.email, req.body.password, users)) {
-    res.status(403).send("Password or email incorrect.")
+    res.status(403).send("Password or email incorrect.");
   } else  {
     let user_id = getUserByEmail(req.body.email, users);
     // res.cookie('user_id', user_id);
     req.session.user_id = user_id;
-    res.redirect('/urls') 
+    res.redirect('/urls');
   }
 });
 
+// Logout
 app.post('/logout',  (req, res) => {
   req.session.user_id = null;
   res.redirect('/urls');
 });
 
+//  Delete url
 app.post('/urls/:shortURL/delete', (req, res) => {
   if (req.session.user_id) {
     const shortURL = req.params.shortURL;
     delete urlDatabase[shortURL];
-    res.redirect('/urls')
-  };
-}); 
+    res.redirect('/urls');
+  }
+});
 
+// Tiny URL page
 app.post('/urls/:id', (req, res) => {
-  if(req.session.user_id){
+  if (req.session.user_id) {
     const id = req.params.id;
-    res.redirect(`/urls/${id}`)
-  };
-}); 
+    res.redirect(`/urls/${id}`);
+  }
+});
 
+// Add newly created Tiny URL data to database
 app.post('/urls', (req, res) => {
   const newTinyUrl = generateRandomString();
   urlDatabase[newTinyUrl] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
-  }; 
-
-  console.log(urlDatabase); //Lot the POST request body to the console
-
+  };
   let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl].longURL , user: users[req.session.user_id] };
-  res.render('urls_show', templateVars);
-}); 
+  res.redirect('/urls');
+});
 
 
 // GET requests
-app.get("/u/:shortURL", (req, res) => {
-    const longURL = urlDatabase[req.params.shortURL].longURL;
 
-    if(longURL === undefined) {
-      res.render('urls_notiny');
-      // setTimeout(() => res.redirect(`http://localhost:${PORT}/urls/new`), 3000);
-    } else {
-      res.redirect(longURL);
-    };
+// Redirect from short to long URL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  if (longURL === undefined) {
+    res.render('urls_notiny');
+  } else {
+    res.redirect(longURL);
+  }
 });
 
+// Route to create a new tiny URL
 app.get('/urls/new', (req, res) => {
   let templateVars = {user: users[req.session.user_id]};
   if (!users[req.session.user_id]) {
-    res.redirect('/login')
+    res.redirect('/login');
   } else {
     res.render('urls_new', templateVars);
   }
 });
 
+// Short URL description route
 app.get('/urls/:shortURL', (req, res) => {
-  
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
   res.render('urls_show', templateVars);
-})
+});
 
+// Mains page with the user's URL
 app.get('/urls', (req, res) => {
   if (req.session.user_id) {
     let urlDatabaseUser = urlsForUser(req.session.user_id, urlDatabase);
@@ -158,32 +162,32 @@ app.get('/urls', (req, res) => {
   } else {
     let templateVars = { urls: urlDatabase, user: users[req.session.user_id]};
     res.render('urls_index', templateVars);
-  };
+  }
 });
 
+// Login page
 app.get('/login', (req, res) => {
-  let templateVars = {user: users[req.session.user_id]}
+  let templateVars = {user: users[req.session.user_id]};
   res.render('urls_login', templateVars);
 });
 
+// Register page
 app.get('/register', (req, res) => {
-  let templateVars = {user: req.session.user_id}
+  let templateVars = {user: req.session.user_id};
   res.render('urls_register', templateVars);
 });
 
+// Redirect to main page
 app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
+// URL database as JSON
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
+// Printing on the console the port assigned to the server
 app.listen(PORT, () =>  {
-  console.log(`Example app listening on ${PORT}!`);
+  console.log(`TinyApp listening on ${PORT}!`);
 });
