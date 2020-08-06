@@ -38,7 +38,7 @@ const emailLookup = (email) => {
 const authenticator = (email, password) => {
   for (let user of Object.keys(users)) {
     for (let item in users[user]) {
-      if (users[user]['email'] === email && users[user]['password'] === password) {
+      if (users[user]['email'] === email && bcrypt.compareSync(password, users[user]['password'])) {
         return false
       }
     }
@@ -49,7 +49,7 @@ const authenticator = (email, password) => {
 const userID = (email, password) => {
   for (let user of Object.keys(users)) {
     for (let item in users[user]) {
-      if (users[user]['email'] === email && users[user]['password'] === password) {
+      if (users[user]['email'] === email && bcrypt.compareSync(password, users[user]['password'])) {
         return users[user]['id'];
       }
     }
@@ -101,7 +101,7 @@ app.post('/register',  (req, res) => {
     users[newUser] = {
     id: newUser,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, salt)
   };
   console.log(users);
   let user_id = newUser;
