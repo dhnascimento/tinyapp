@@ -17,6 +17,7 @@ const {
   urlsForUser
 } = require('./helpers');
 
+
 // Salts for bcrypt
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
@@ -102,6 +103,9 @@ app.post('/urls/:shortURL/delete', (req, res) => {
     delete urlDatabase[shortURL];
     res.redirect('/urls');
   }
+  else{
+    res.send('Cannot find this tiny url to delete');
+  }
 });
 
 // Tiny URL page
@@ -119,7 +123,7 @@ app.post('/urls', (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id
   };
-  let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl].longURL , user: users[req.session.user_id] };
+  
   res.redirect('/urls');
 });
 
@@ -128,10 +132,11 @@ app.post('/urls', (req, res) => {
 
 // Redirect from short to long URL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  if (longURL === undefined) {
-    res.render('urls_notiny');
+   if(!urlDatabase[req.params.shortURL] || (users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID)) {
+    let templateVars = { shortURL: req.params.shortURL, user: users[req.session.user_id] };
+    res.render('urls_notiny', templateVars);
   } else {
+    const longURL = urlDatabase[req.params.shortURL].longURL
     res.redirect(longURL);
   }
 });
@@ -148,8 +153,13 @@ app.get('/urls/new', (req, res) => {
 
 // Short URL description route
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
-  res.render('urls_show', templateVars);
+  if (!urlDatabase[req.params.shortURL] || users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID) {
+    let templateVars = { shortURL: req.params.shortURL, user: users[req.session.user_id] };
+    res.render('urls_notiny', templateVars);
+  } else {
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
+    res.render('urls_show', templateVars);
+  }
 });
 
 // Mains page with the user's URL
