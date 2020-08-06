@@ -53,6 +53,16 @@ const userID = (email, password) => {
   return true;
 }; 
 
+const urlsForUser = (id) => {
+  let urls = {};
+  for (let tiny in urlDatabase) {
+    if (urlDatabase[tiny].userID === id) {
+      urls[tiny] = urlDatabase[tiny]
+    }
+  }
+  return urls;
+};
+
 // URLs object
 // const urlDatabase = {
 //   'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -60,8 +70,10 @@ const userID = (email, password) => {
 // };
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "hermes" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "pastorAbraao" },
+  ty663d: { longURL: "https://www.thecure.com", userID: "hermes" },
+  d7TvTl: { longURL: "https://gasdrawls.com", userID: "pastorAbraao" }
 };
 
 
@@ -102,13 +114,10 @@ app.post('/register',  (req, res) => {
 
 app.post('/login',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    console.log("Success1")
     res.status(400).send("Please fill out all required fields");
   } else if (authenticator(req.body.email, req.body.password)) {
-    console.log("Success2")
     res.status(403).send("Password or email incorrect.")
   } else  {
-    console.log("Success3")
     let user_id = userID(req.body.email, req.body.password);
     res.cookie('user_id', user_id);
     res.redirect('/urls') 
@@ -121,14 +130,18 @@ app.post('/logout',  (req, res) => {
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls')
+  if (req.cookies.user_id) {
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect('/urls')
+  };
 }); 
 
 app.post('/urls/:id', (req, res) => {
-  const id = req.params.id;
-  res.redirect(`/urls/${id}`)
+  if(req.cookies.user_id){
+    const id = req.params.id;
+    res.redirect(`/urls/${id}`)
+  };
 }); 
 
 app.post('/urls', (req, res) => {
@@ -137,8 +150,8 @@ app.post('/urls', (req, res) => {
     longURL: req.body.longURL,
     userID: req.cookies.user_id
   }; 
+
   console.log(urlDatabase); //Lot the POST request body to the console
-  // res.send('Ok'); //Respond with "OK" (will be replaced)
 
   let templateVars = { shortURL: newTinyUrl, longURL: urlDatabase[newTinyUrl].longURL , user: users[req.cookies.user_id] };
   res.render('urls_show', templateVars);
@@ -173,8 +186,15 @@ app.get('/urls/:shortURL', (req, res) => {
 })
 
 app.get('/urls', (req, res) => {
-  let templateVars = { urls: urlDatabase, user: users[req.cookies.user_id]};
-  res.render('urls_index', templateVars);
+  if (req.cookies.user_id){
+    let urlDatabaseUser = urlsForUser(req.cookies.user_id);
+    console.log(urlDatabaseUser);
+    let templateVars = { urls: urlDatabaseUser, user: users[req.cookies.user_id]};
+    res.render('urls_index', templateVars);
+  } else {
+    let templateVars = { urls: urlDatabase, user: users[req.cookies.user_id]};
+    res.render('urls_index', templateVars);
+  };
 });
 
 app.get('/login', (req, res) => {
