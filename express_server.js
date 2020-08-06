@@ -3,9 +3,18 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+
+const {
+  generateCookieKey,
+  generateRandomString,
+  emailLookup,
+  authenticator,
+  getUserByEmail,
+  urlsForUser
+} = require('./helpers');
+
 
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
@@ -13,70 +22,14 @@ const salt = bcrypt.genSaltSync(saltRounds);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
-app.use(cookieParser());
 app.set('view engine', 'ejs');
 
-const generateCookieKey = () => {
-  return Math.random()    //  Returns a random number between 0 and 1.
-  .toString(36)           //  Base36 encoding; use of letters with digits.
-  .substring(2,10);        //  Returns the part of the string between the start and end indexes, or to the end of the string. 
-};
 
 app.use(cookieSession({
   name: 'session',
   keys: [generateCookieKey(), generateCookieKey(), generateCookieKey()]
 }))
 
-// Helper functions
-
-const generateRandomString = () => {
-  return Math.random()    //  Returns a random number between 0 and 1.
-  .toString(36)           //  Base36 encoding; use of letters with digits.
-  .substring(2,8);        //  Returns the part of the string between the start and end indexes, or to the end of the string. 
-};
-
-const emailLookup = (email) => {
-  for (let user of Object.keys(users)) {
-    for (let item in users[user]) {
-      if (users[user]['email'] === email) {
-        return false
-      }
-    }
-  }
-  return true;
-}; 
-
-const authenticator = (email, password) => {
-  for (let user of Object.keys(users)) {
-    for (let item in users[user]) {
-      if (users[user]['email'] === email && bcrypt.compareSync(password, users[user]['password'])) {
-        return false
-      }
-    }
-  }
-  return true;
-}; 
-
-const getUserByEmail = (email, password, database) => {
-  for (let user of Object.keys(database)) {
-    for (let item in database[user]) {
-      if (database[user]['email'] === email && bcrypt.compareSync(password, database[user]['password'])) {
-        return database[user]['id'];
-      }
-    }
-  }
-  return true;
-}; 
-
-const urlsForUser = (id) => {
-  let urls = {};
-  for (let tiny in urlDatabase) {
-    if (urlDatabase[tiny].userID === id) {
-      urls[tiny] = urlDatabase[tiny]
-    }
-  }
-  return urls;
-};
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "hermes" },
@@ -105,7 +58,7 @@ const users = {
 app.post('/register',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please fill out all required fields");
-  } else if (!emailLookup(req.body.email)) {
+  } else if (!emailLookup(req.body.email, users)) {
     res.status(400).send("This email already exists in our database. Please choose another one.");
   } else {
     let newUser = generateRandomString();
@@ -125,7 +78,7 @@ app.post('/register',  (req, res) => {
 app.post('/login',  (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please fill out all required fields");
-  } else if (authenticator(req.body.email, req.body.password)) {
+  } else if (authenticator(req.body.email, req.body.password, users)) {
     res.status(403).send("Password or email incorrect.")
   } else  {
     let user_id = getUserByEmail(req.body.email, req.body.password, users);
@@ -198,7 +151,7 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/urls', (req, res) => {
   if (req.session.user_id) {
-    let urlDatabaseUser = urlsForUser(req.session.user_id);
+    let urlDatabaseUser = urlsForUser(req.session.user_id, urlDatabase);
     console.log(urlDatabaseUser);
     let templateVars = { urls: urlDatabaseUser, user: users[req.session.user_id]};
     res.render('urls_index', templateVars);
