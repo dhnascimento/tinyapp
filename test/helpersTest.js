@@ -12,13 +12,13 @@ const salt = bcrypt.genSaltSync(saltRounds);
 
 const testUsers = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: bcrypt.hashSync("purple-monkey-dinosaur", salt)
   },
   "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", salt)
   }
 };
@@ -44,17 +44,17 @@ describe('authenticator', function() {
 
   it('should return true if the email is but the password is not in the database', function() {
     const user = authenticator("user@example.com","purple-monkey", testUsers);
-    assert.isTrue(true);
+    assert.isTrue(user);
   });
 
   it('should return true if the email is not but the password is in the database', function() {
     const user = authenticator("user333@example.com","purple-monkey-dinosaur", testUsers);
-    assert.isTrue(true);
+    assert.isTrue(user);
   });
 
   it('should return true if both the email and the password are not in the database', function() {
     const user = authenticator("user333@example.com","purple-monkey-bird", testUsers);
-    assert.isTrue(true);
+    assert.isTrue(user);
   });
   
 
