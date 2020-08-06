@@ -34,10 +34,10 @@ const authenticator = (email, password, database) => {
   return true;
 };
 
-const getUserByEmail = (email, password, database) => {
+const getUserByEmail = (email, database) => {
   for (let user of Object.keys(database)) {
     for (let item in database[user]) {
-      if (database[user]['email'] === email && bcrypt.compareSync(password, database[user]['password'])) {
+      if (database[user]['email'] === email) {
         return database[user]['id'];
       }
     }

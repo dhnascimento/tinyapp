@@ -81,7 +81,7 @@ app.post('/login',  (req, res) => {
   } else if (authenticator(req.body.email, req.body.password, users)) {
     res.status(403).send("Password or email incorrect.")
   } else  {
-    let user_id = getUserByEmail(req.body.email, req.body.password, users);
+    let user_id = getUserByEmail(req.body.email, users);
     // res.cookie('user_id', user_id);
     req.session.user_id = user_id;
     res.redirect('/urls') 
