@@ -126,12 +126,21 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls');
 });
 
+// Edit Tiny URL
+app.post('/urls/:shortURL/edit', (req, res) => {
+  if (req.session.user_id) {
+    const shortURL = req.params.shortURL;
+    urlDatabase[shortURL].longURL = req.body.longURL;
+    res.redirect('/urls');
+  };
+  });
 
 // GET requests
 
+// || (users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID)
 // Redirect from short to long URL
 app.get("/u/:shortURL", (req, res) => {
-  if (!urlDatabase[req.params.shortURL] || (users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID)) {
+  if (!urlDatabase[req.params.shortURL]) {
     let templateVars = {
       shortURL: req.params.shortURL,
       user: users[req.session.user_id]
