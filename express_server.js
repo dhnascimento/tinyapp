@@ -165,7 +165,7 @@ app.get('/urls/new', (req, res) => {
 
 // Short URL description route
 app.get('/urls/:shortURL', (req, res) => {
-  if (!urlDatabase[req.params.shortURL] || users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID) {
+  if (!urlDatabase[req.params.shortURL] || !users[req.session.user_id]) {
     let templateVars = {
       shortURL: req.params.shortURL,
       user: users[req.session.user_id]
