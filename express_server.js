@@ -137,7 +137,6 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // GET requests
 
-// || (users[req.session.user_id]['id'] !== urlDatabase[req.params.shortURL].userID)
 // Redirect from short to long URL
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
